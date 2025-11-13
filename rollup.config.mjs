@@ -1,7 +1,7 @@
+// @ts-check
 import typescript from "@rollup/plugin-typescript";
 import json from "@rollup/plugin-json";
 import { terser } from "rollup-plugin-terser";
-// import gzipPlugin from 'rollup-plugin-gzip';
 import license from "rollup-plugin-license";
 
 const ALGORITHMS = [
@@ -42,7 +42,7 @@ const TERSER_CONFIG = {
 
 const LICENSE_CONFIG = {
   banner: {
-    commentStyle: "ignored",
+    commentStyle: /** @type {const} */ ("ignored"),
     content: `hash-wasm (https://www.npmjs.com/package/hash-wasm)
     (c) Dani Biro
     @license MIT`,
@@ -86,7 +86,7 @@ const MINIFIED_MAIN_BUNDLE_CONFIG = {
   ],
 };
 
-const INDIVIDUAL_BUNDLE_CONFIG = (algorithm) => ({
+const INDIVIDUAL_BUNDLE_CONFIG = (/** @type {string} */ algorithm) => ({
   input: `lib/${algorithm}.ts`,
   output: [
     {
@@ -95,13 +95,18 @@ const INDIVIDUAL_BUNDLE_CONFIG = (algorithm) => ({
       format: "umd",
       extend: true,
     },
+    {
+      file: `dist/${algorithm}.js`,
+      name: "hashwasm",
+      format: 'esm',
+      extend: true
+    }
   ],
   plugins: [
     json(),
     typescript(),
     terser(TERSER_CONFIG),
     license(LICENSE_CONFIG),
-    // gzipPlugin(),
   ],
 });
 

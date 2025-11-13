@@ -5,6 +5,18 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "types": "dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./umd/*": "./dist/*.umd.js",
+    "./min/*": "./dist/*.umd.min.js",
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist/*.umd.js"
+    }
+  },
   "scripts": {
     "build": "sh -c ./scripts/build.sh",
     "lint": "npx @biomejs/biome check lib test",
