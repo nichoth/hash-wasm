@@ -8,7 +8,11 @@
   "scripts": {
     "build": "sh -c ./scripts/build.sh",
     "lint": "npx @biomejs/biome check lib test",
-    "prepublishOnly": "sh -c ./scripts/build.sh",
+    "toc": "markdown-toc --maxdepth 3 -i README.md",
+    "preversion": "npm run lint",
+    "version": "npm run toc && auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md README.md",
+    "postversion": "git push --follow-tags && npm publish",
+    "prepublishOnly": "npm run build",
     "test": "node --expose-gc ./node_modules/.bin/jest --coverage --logHeapUsage",
     "webpack": "node webpack/webpack.js"
   },
@@ -85,8 +89,10 @@
     "@types/estree": "^1.0.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
+    "auto-changelog": "^2.5.0",
     "binaryen": "^120.0.0",
     "jest": "^29.7.0",
+    "markdown-toc": "^1.2.0",
     "rollup": "^4.27.3",
     "rollup-plugin-gzip": "^4.0.1",
     "rollup-plugin-license": "^3.5.3",

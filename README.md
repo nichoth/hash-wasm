@@ -6,10 +6,63 @@
 [![Build status](https://github.com/Daninet/hash-wasm/workflows/Build%20&%20publish/badge.svg?branch=master)](https://github.com/Daninet/hash-wasm/actions)
 [![JSDelivr downloads](https://data.jsdelivr.com/v1/package/npm/hash-wasm/badge)](https://www.jsdelivr.com/package/npm/hash-wasm)
 
-Hash-WASM is a ⚡lightning fast⚡ hash function library for browsers and Node.js.
-It is using hand-tuned WebAssembly binaries to calculate the hash faster than other libraries.
+Hash-WASM is a ⚡lightning fast⚡ hash function library for browsers and
+Node.js. It is using hand-tuned WebAssembly binaries to calculate the hash
+faster than other libraries.
 
-# Supported algorithms
+<details><summary><h2>Contents</h2></summary>
+
+<!-- toc -->
+
+- [Fork](#fork)
+- [Docker](#docker)
+  * [Linux](#linux)
+  * [Mac OS](#mac-os)
+- [Supported algorithms](#supported-algorithms)
+- [Features](#features)
+- [Installation](#installation)
+- [Examples](#examples)
+  * [Demo apps](#demo-apps)
+  * [Usage with the shorthand form](#usage-with-the-shorthand-form)
+  * [Advanced usage with streaming input](#advanced-usage-with-streaming-input)
+  * [Hashing passwords with Argon2](#hashing-passwords-with-argon2)
+  * [Hashing passwords with bcrypt](#hashing-passwords-with-bcrypt)
+  * [Calculating HMAC](#calculating-hmac)
+  * [Calculating PBKDF2](#calculating-pbkdf2)
+  * [String encoding pitfalls](#string-encoding-pitfalls)
+  * [Resumable hashing](#resumable-hashing)
+- [Browser support](#browser-support)
+- [Benchmark](#benchmark)
+- [API](#api)
+- [Future plans](#future-plans)
+
+<!-- tocstop -->
+
+</details>
+
+## Fork
+
+This is a fork of [Daninet/hash-wasm](https://github.com/Daninet/hash-wasm).
+
+## Docker
+
+You need a Docker daemon running in order to build this.
+
+### Linux
+
+```sh
+sudo systemctl start docker
+```
+
+### Mac OS
+
+Start the desktop app. You can use this command:
+
+```sh
+open -a Docker
+```
+
+## Supported algorithms
 
 | Name                                           | Bundle size (gzipped) |
 | ---------------------------------------------- | --------------------- |
@@ -39,16 +92,18 @@ It is using hand-tuned WebAssembly binaries to calculate the hash faster than ot
 | xxHash3                                        | 7 kB                  |
 | xxHash128                                      | 8 kB                  |
 
-# Features
+## Features
 
-- A lot faster than other JS / WASM implementations (see [benchmarks](#benchmark) below)
+- A lot faster than other JS / WASM implementations (see
+  [benchmarks](#benchmark) below)
 - It's lightweight. See the table above
 - Compiled from heavily optimized algorithms written in C
 - Supports all modern browsers, Node.js and Deno
 - Supports large data streams
 - Supports UTF-8 strings and typed arrays
 - Supports chunked input streams
-- Modular architecture (the algorithms are compiled into individual WASM binaries)
+- Modular architecture (the algorithms are compiled into individual WASM
+  binaries)
 - WASM modules are bundled as base64 strings (no problems with linking)
 - Supports tree shaking (Webpack only bundles the hash algorithms you use)
 - Works without Webpack or other bundlers
@@ -56,42 +111,52 @@ It is using hand-tuned WebAssembly binaries to calculate the hash faster than ot
 - Works in Web Workers
 - Zero dependencies
 - Supports concurrent hash calculations with multiple states
-- Supports saving and loading the internal state of the hash (segmented hashing and rewinding)
-- [Unit tests](https://github.com/Daninet/hash-wasm/tree/master/test) for all algorithms
-- 100% open source & transparent [build process](https://github.com/Daninet/hash-wasm/actions)
+- Supports saving and loading the internal state of the hash (segmented hashing
+  and rewinding)
+- [Unit tests](https://github.com/Daninet/hash-wasm/tree/master/test) for all
+  algorithms
+- 100% open source & transparent
+  [build process](https://github.com/Daninet/hash-wasm/actions)
 - Easy to use, Promise-based API
 
-# Installation
+## Installation
 
 ```
-npm i hash-wasm
+npm i -S @nichoth/hash-wasm
 ```
 
-It can also be used directly from HTML (via [jsDelivr](https://www.jsdelivr.com/package/npm/hash-wasm)):
+It can also be used directly from HTML (via
+[jsDelivr](https://www.jsdelivr.com/package/npm/hash-wasm)):
 
 ```html
 <!-- load all algortihms into the global `hashwasm` variable -->
 <script src="https://cdn.jsdelivr.net/npm/hash-wasm@4"></script>
 
 <!-- load individual algortihms into the global `hashwasm` variable -->
-<script src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/md5.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/hmac.umd.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/md5.umd.min.js"
+></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/hash-wasm@4/dist/hmac.umd.min.js"
+></script>
 ```
 
-# Examples
+## Examples
 
 ### Demo apps
 
-[Hash calculator](https://3w4be.csb.app/) - [source code](https://codesandbox.io/s/hash-wasm-3w4be?file=/src/App.tsx)
+[Hash calculator](https://3w4be.csb.app/) -
+[source code](https://codesandbox.io/s/hash-wasm-3w4be?file=/src/App.tsx)
 
 [MD5 file hasher using HTML5 File API](https://stackoverflow.com/a/63287199/6251760)
 
 ### Usage with the shorthand form
 
-It is the easiest and the fastest way to calculate hashes. Use it when the input buffer is already in the memory.
+It is the easiest and the fastest way to calculate hashes. Use it when the input
+buffer is already in the memory.
 
 ```javascript
-import { md5, sha1, sha512, sha3 } from "hash-wasm";
+import { md5, sha1, sha3, sha512 } from "hash-wasm";
 
 async function run() {
   console.log("MD5:", await md5("demo"));
@@ -113,9 +178,16 @@ _\*\* See [API reference](#api)_
 
 ### Advanced usage with streaming input
 
-createXXXX() functions create new WASM instances with separate states, which can be used to calculate multiple hashes paralelly. They are slower compared to shorthand functions like md5(), which reuse the same WASM instance and state to do multiple calculations. For this reason, the shorthand form is always preferred when the data is already in the memory.
+createXXXX() functions create new WASM instances with separate states, which can
+be used to calculate multiple hashes paralelly. They are slower compared to
+shorthand functions like md5(), which reuse the same WASM instance and state to
+do multiple calculations. For this reason, the shorthand form is always
+preferred when the data is already in the memory.
 
-For the best performance, avoid calling createXXXX() functions in loops. When calculating multiple hashes sequentially, the init() function can be used to reset the internal state between runs. It is faster than creating new instances with createXXXX().
+For the best performance, avoid calling createXXXX() functions in loops. When
+calculating multiple hashes sequentially, the init() function can be used to
+reset the internal state between runs. It is faster than creating new instances
+with createXXXX().
 
 ```javascript
 import { createSHA1 } from "hash-wasm";
@@ -142,7 +214,8 @@ _\*\* See [API reference](#api)_
 
 ### Hashing passwords with Argon2
 
-The recommended process for choosing the parameters can be found here: https://tools.ietf.org/html/draft-irtf-cfrg-argon2-04#section-4
+The recommended process for choosing the parameters can be found here:
+https://tools.ietf.org/html/draft-irtf-cfrg-argon2-04#section-4
 
 ```javascript
 import { argon2id, argon2Verify } from "hash-wasm";
@@ -213,7 +286,9 @@ _\*\* See [API reference](#api)_
 
 ### Calculating HMAC
 
-All supported hash functions can be used to calculate HMAC. For the best performance, avoid calling createXXXX() in loops (see `Advanced usage with streaming input` section above)
+All supported hash functions can be used to calculate HMAC. For the best
+performance, avoid calling createXXXX() in loops (see
+`Advanced usage with streaming input` section above)
 
 ```javascript
 import { createHMAC, createSHA3 } from "hash-wasm";
@@ -243,10 +318,12 @@ _\*\* See [API reference](#api)_
 
 ### Calculating PBKDF2
 
-All supported hash functions can be used to calculate PBKDF2. For the best performance, avoid calling createXXXX() in loops (see `Advanced usage with streaming input` section above)
+All supported hash functions can be used to calculate PBKDF2. For the best
+performance, avoid calling createXXXX() in loops (see
+`Advanced usage with streaming input` section above)
 
 ```javascript
-import { pbkdf2, createSHA1 } from "hash-wasm";
+import { createSHA1, pbkdf2 } from "hash-wasm";
 
 async function run() {
   const salt = new Uint8Array(16);
@@ -273,7 +350,8 @@ _\*\* See [API reference](#api)_
 
 ### String encoding pitfalls
 
-You should be aware that there may be multiple UTF-8 representations of a given string:
+You should be aware that there may be multiple UTF-8 representations of a given
+string:
 
 ```js
 "\u00fc"; // encodes the ü character
@@ -283,7 +361,10 @@ You should be aware that there may be multiple UTF-8 representations of a given 
 "ü" === "ü"; // false
 ```
 
-All algorithms defined in this library depend on the binary representation of the input string. Thus, it's highly recommended to normalize your strings before passing it to hash-wasm. You can use the `normalize()` built-in String function to archive this:
+All algorithms defined in this library depend on the binary representation of
+the input string. Thus, it's highly recommended to normalize your strings before
+passing it to hash-wasm. You can use the `normalize()` built-in String function
+to archive this:
 
 ```js
 "\u00fc".normalize() === "u\u0308".normalize(); // true
@@ -296,14 +377,20 @@ te.encode("u\u0308".normalize("NFKC")); // Uint8Array(2) [195, 188]
 te.encode("\u00fc".normalize("NFKC")); // Uint8Array(2) [195, 188]
 ```
 
-You can read more about this issue here: https://en.wikipedia.org/wiki/Unicode_equivalence
+You can read more about this issue here:
+https://en.wikipedia.org/wiki/Unicode_equivalence
 
 ### Resumable hashing
 
-You can save the current internal state of the hash using the `.save()` function. This state may be written to disk or stored elsewhere in memory.
-You can then use the `.load(state)` function to reload that state into a new instance of the hash, or back into the same instance.
+You can save the current internal state of the hash using the `.save()`
+function. This state may be written to disk or stored elsewhere in memory. You
+can then use the `.load(state)` function to reload that state into a new
+instance of the hash, or back into the same instance.
 
-This allows you to span the work of hashing a file across multiple processes (e.g. in environments with limited execution times like AWS Lambda, where large jobs need to be split across multiple invocations), or rewind the hash to an earlier point in the stream. For example, the first process could:
+This allows you to span the work of hashing a file across multiple processes
+(e.g. in environments with limited execution times like AWS Lambda, where large
+jobs need to be split across multiple invocations), or rewind the hash to an
+earlier point in the stream. For example, the first process could:
 
 ```js
 // first process starts hashing
@@ -319,13 +406,18 @@ md5.update("world!");
 console.log(md5.digest()); // Prints 6cd3556deb0da54bca060b4c39479839 = md5("Hello, world!")
 ```
 
-_Note that both the saving and loading processes must be running compatible versions of the hash function (i.e. the hash function hasn't changed between the versions of hash-wasm used in the saving and loading processes). If the saved state is incompatible, `load()` will throw an exception._
+_Note that both the saving and loading processes must be running compatible
+versions of the hash function (i.e. the hash function hasn't changed between the
+versions of hash-wasm used in the saving and loading processes). If the saved
+state is incompatible, `load()` will throw an exception._
 
-_The saved state can contain information about the input, including plaintext input bytes, so from a security perspective it must be treated with the same care as the input data itself._
+_The saved state can contain information about the input, including plaintext
+input bytes, so from a security perspective it must be treated with the same
+care as the input data itself._
 
 <br/>
 
-# Browser support
+## Browser support
 
 <br/>
 
@@ -335,9 +427,10 @@ _The saved state can contain information about the input, including plaintext in
 
 <br/>
 
-# Benchmark
+## Benchmark
 
-You can make your own measurements here: [link](https://daninet.github.io/hash-wasm-benchmark/)
+You can make your own measurements here:
+[link](https://daninet.github.io/hash-wasm-benchmark/)
 
 Two scenarios were measured:
 
@@ -355,7 +448,7 @@ Results:
 | node-forge 1.3.1 (from npm) | 18.23 MB/s            | 28.94 MB/s       |
 | md5 2.3.0 (from npm)        | 14.50 MB/s            | 21.65 MB/s       |
 
-#
+# 
 
 | SHA1                        | throughput (32 bytes) | throughput (1MB) |
 | --------------------------- | --------------------- | ---------------- |
@@ -365,7 +458,7 @@ Results:
 | node-forge 1.3.1 (from npm) | 17.02 MB/s            | 32.00 MB/s       |
 | sha1 1.1.1 (from npm)       | 14.68 MB/s            | 24.24 MB/s       |
 
-#
+# 
 
 | SHA256                        | throughput (32 bytes) | throughput (1MB) |
 | ----------------------------- | --------------------- | ---------------- |
@@ -376,7 +469,7 @@ Results:
 | jsSHA 3.3.1 (from npm)        | 25.64 MB/s            | 57.98 MB/s       |
 | node-forge 1.3.1 (from npm)   | 13.93 MB/s            | 28.19 MB/s       |
 
-#
+# 
 
 | SHA3-512                      | throughput (32 bytes) | throughput (1MB) |
 | ----------------------------- | --------------------- | ---------------- |
@@ -386,15 +479,15 @@ Results:
 | sha3 2.1.4 (from npm)         | 3.80 MB/s             | 10.73 MB/s       |
 | jsSHA 3.2.0 (from npm)        | 2.08 MB/s             | 3.82 MB/s        |
 
-#
+# 
 
-| XXHash64                     | throughput (32 bytes) | throughput (1MB)   |
-| ---------------------------- | --------------------- | ------------------ |
-| **hash-wasm 4.10.0**         | **101.66 MB/s**       | **15 989 MB/s** |
-| xxhash-wasm 1.0.2 (from npm) | 47.58 MB/s            | 15 929 MB/s     |
-| xxhashjs 0.2.2 (from npm)    | 0.92 MB/s             | 42.26 MB/s         |
+| XXHash64                     | throughput (32 bytes) | throughput (1MB) |
+| ---------------------------- | --------------------- | ---------------- |
+| **hash-wasm 4.10.0**         | **101.66 MB/s**       | **15 989 MB/s**  |
+| xxhash-wasm 1.0.2 (from npm) | 47.58 MB/s            | 15 929 MB/s      |
+| xxhashjs 0.2.2 (from npm)    | 0.92 MB/s             | 42.26 MB/s       |
 
-#
+# 
 
 | PBKDF2-SHA512 - 1000 iterations | operations per second (16 bytes) |
 | ------------------------------- | -------------------------------- |
@@ -403,7 +496,7 @@ Results:
 | pbkdf2 3.1.2 (from npm)         | 83 ops                           |
 | crypto-js 4.1.1 (from npm)      | 29 ops                           |
 
-#
+# 
 
 | Argon2id (m=512, t=8, p=1)       | operations per second (16 bytes) |
 | -------------------------------- | -------------------------------- |
@@ -414,9 +507,10 @@ Results:
 
 <br/>
 
-\* These measurements were made with `Chrome v131` on a Ryzen 9 7900X desktop CPU.
+\* These measurements were made with `Chrome v131` on a Ryzen 9 7900X desktop
+CPU.
 
-# API
+## API
 
 ```ts
 type IDataType = string | Buffer | Uint8Array | Uint16Array | Uint32Array;
@@ -531,13 +625,13 @@ bcryptVerify({
   password: IDataType, // password
   hash: string, // encoded hash
 }): Promise<boolean>
-
 ```
 
-# Future plans
+## Future plans
 
 - Add more well-known algorithms
-- Write a polyfill which keeps bundle sizes low and enables running binaries containing newer WASM instructions
+- Write a polyfill which keeps bundle sizes low and enables running binaries
+  containing newer WASM instructions
 - Use WebAssembly Bulk Memory Operations
 - Use WebAssembly SIMD instructions (expecting a 10-20% performance increase)
 - Enable multithreading where it's possible (like at Argon2)
